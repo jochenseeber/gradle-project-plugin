@@ -1,0 +1,254 @@
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.bundling.Jar
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath group: "com.gradle.publish", name: "plugin-publish-plugin", version: "0.9.1"
+        classpath group: "com.jfrog.bintray.gradle", name: "gradle-bintray-plugin", version: "1.6"
+
+        classpath(group: "gradle.plugin.nl.javadude.gradle.plugins", name: "license-gradle-plugin", version: "0.12.1") { exclude group: "com.android.tools.build" }
+    }
+}
+
+version = "1.0.0-SNAPSHOT"
+group = "me.seeber.gradle"
+description = "Plugins for common Gradle project settings"
+
+def organizationName = "Jochen Seeber"
+def githubUser = "jochenseeber"
+
+apply plugin: "com.gradle.plugin-publish"
+apply plugin: "com.jfrog.bintray"
+apply plugin: "eclipse"
+apply plugin: "groovy"
+apply plugin: "java-gradle-plugin"
+apply plugin: "license"
+apply plugin: "maven-publish"
+
+pluginBundle {
+    website = "https://github.com/${githubUser}/${project.name}"
+    vcsUrl = "https://github.com/${githubUser}/${project.name}.git"
+    description = project.description
+    tags = [
+        "project",
+        "template",
+        "convention"
+    ]
+
+    plugins {
+        baseProjectPlugin {
+            id = "me.seeber.project.base"
+            displayName = "Basic project configuration"
+        }
+
+        javaProjectPlugin {
+            id = "me.seeber.project.java"
+            displayName = "Configuration for Java and other JVM language projects"
+        }
+
+        javaBaseProjectPlugin {
+            id = "me.seeber.project.java-base"
+            displayName = "Configuration for Java projects"
+        }
+
+        jarProjectPlugin {
+            id = "me.seeber.project.jar"
+            displayName = "Configuration for Java projects that generate a JAR"
+        }
+
+        annotationsProjectPlugin {
+            id = "me.seeber.project.annotations"
+            displayName = "Configuration for Java projects that generate external annotation JARs"
+        }
+
+        gradlePluginProjectPlugin {
+            id = "me.seeber.project.gradle-plugin"
+            displayName = "Configuration for Gradle plugin projects"
+        }
+
+        mavenRepositoryPlugin {
+            id = "me.seeber.repository.maven"
+            displayName = "Configuration forMaven repositories"
+        }
+
+        bintrayRepositoryPlugin {
+            id = "me.seeber.repository.bintray"
+            displayName = "Configuration for BinTray repositories"
+        }
+
+        githuRepositoryPlugin {
+            id = "me.seeber.repository.github"
+            displayName = "Configuration for Github repisitories"
+        }
+
+        eclipseIdePlugin {
+            id = "me.seeber.ide.eclipse"
+            displayName = "Configuration for Eclipse IDE"
+        }
+    }
+}
+
+license { header file("LICENSE.txt") }
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    maven { url = "https://plugins.gradle.org/m2/" }
+}
+
+task sourceJar(type: Jar) {
+    classifier = "sources"
+    from sourceSets.main.allJava
+}
+
+task groovydocJar(type: Jar, dependsOn: groovydoc) {
+    classifier = "groovydoc"
+    from groovydoc.destinationDir
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives groovydocJar
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile group: "com.gradle.publish", name: "plugin-publish-plugin", version: "0.9.1"
+    compile group: "com.jfrog.bintray.gradle", name: "gradle-bintray-plugin", version: "1.6"
+
+    compile (group: "gradle.plugin.nl.javadude.gradle.plugins", name: "license-gradle-plugin", version: "0.12.1") { exclude group: "com.android.tools.build" }
+}
+
+Node createPomTemplate() {
+    new NodeBuilder().project {
+        organization { name("Jochen Seeber") }
+        inceptionYear "2015"
+        description project.description
+
+        licenses {
+            license([:]) {
+                name "BSD 2-Clause"
+                url "https://opensource.org/licenses/BSD-2-Clause"
+                distribution "repo"
+            }
+        }
+
+        scm { url pluginBundle.vcsUrl }
+
+        developers {
+            developer {
+                id "jochen"
+                name "Jochen Seeber"
+                email "jochen@seeber.me"
+            }
+        }
+
+        repositories([:]) {
+            repository {
+                id "jcenter-releases"
+                name "JCenter Releases"
+                url "https://dl.bintray.com/jochen/maven/"
+                releases {
+                    enabled "true"
+                    checksumPolicy "warn"
+                    updatePolicy "always"
+                }
+                snapshots {
+                    enabled "true"
+                    checksumPolicy "warn"
+                    updatePolicy "always"
+                }
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+
+            from components.java
+            artifact sourceJar
+            artifact groovydocJar
+
+            pom.withXml { xml ->
+                Node project = xml.asNode()
+
+                createPomTemplate().children().each { Node n ->
+                    project.append(n)
+                }
+
+                project.dependencies.dependency.each { Node n ->
+                    if(n.scope.text() == "runtime") {
+                        n.scope*.value = "compile"
+                    }
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv("BINTRAY_USER") ?: project.findProperty("bintray.user")
+    key = System.getenv("BINTRAY_KEY") ?: project.findProperty("bintray.key")
+    publications = project.publishing.publications.withType(MavenPublication)*.name
+
+    pkg {
+        repo = "maven"
+        name = project.name
+        userOrg = "jochen"
+        licenses = ["BSD 2-Clause"]
+        vcsUrl = pluginBundle.vcsUrl
+
+        version {
+            name = project.version
+            vcsTag = "${project.name}-${project.version}"
+        }
+    }
+}
+
+eclipse {
+    classpath {
+        jdt {
+            file {
+                withProperties { Properties properties ->
+                    file("src/eclipse/config/org.eclipse.jdt.core.prefs").withInputStream { InputStream input ->
+                        properties.load(input)
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.cleanEclipse.doLast { delete("${project.projectDir}/.settings/org.eclipse.jdt.ui.prefs") }
+
+tasks.eclipse.doLast {
+    Properties properties = new Properties()
+
+    file("src/eclipse/config/org.eclipse.jdt.ui.prefs").withReader("UTF-8") { input ->
+        properties.load(input)
+    }
+
+    file("${project.projectDir}/.settings/org.eclipse.jdt.ui.prefs").withWriter("UTF-8") { output ->
+        properties.store(output, null)
+    }
+}
+
+tasks.eclipse.dependsOn(tasks.pluginUnderTestMetadata)
+
+task install {
+    description = "Install to local repository"
+    dependsOn "publishToMavenLocal"
+}
