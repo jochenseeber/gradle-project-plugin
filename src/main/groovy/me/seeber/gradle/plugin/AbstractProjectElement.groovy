@@ -28,20 +28,26 @@
 
 package me.seeber.gradle.plugin;
 
-import org.gradle.api.Project
-
 import groovy.transform.TypeChecked
+
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
 
 @TypeChecked
 abstract class AbstractProjectElement {
 
     abstract Project getProject()
 
-    String getPropertyValue(String name) {
+    String getPropertyValue(String name, boolean optional = true) {
         String env = name.toUpperCase().replace('.', '_')
         String property = name.toLowerCase()
+        String value = System.properties[env] ?: getProject().findProperty(property)
 
-        System.properties[env] ?: getProject().findProperty(property)
+        if(value == null && !optional) {
+            throw new InvalidUserDataException("Please set '${property}' in ~/.gradle/gradle.properties or '${property}' in the environment")
+        }
+
+        value
     }
 
     public <T> T extension(Class<T> type) {

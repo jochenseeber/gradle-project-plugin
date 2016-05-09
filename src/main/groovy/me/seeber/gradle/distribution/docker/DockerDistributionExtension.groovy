@@ -41,7 +41,13 @@ class DockerDistributionExtension extends AbstractProjectExtension {
 
     boolean pull = true
 
+    URI registryUrl
+
     void images(Closure configuration) {
         images.configure(configuration)
+    }
+
+    void setRegistryUrl(String url) {
+        this.registryUrl = URI.create(url)
     }
 }

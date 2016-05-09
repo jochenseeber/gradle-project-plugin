@@ -28,10 +28,10 @@
 package me.seeber.gradle.distribution.bintray
 
 import groovy.transform.TypeChecked
+import me.seeber.gradle.distribution.maven.MavenDistributionPlugin
 import me.seeber.gradle.plugin.AbstractProjectPlugin
 import me.seeber.gradle.project.base.BaseProjectExtension
 import me.seeber.gradle.project.base.BaseProjectPlugin
-import me.seeber.gradle.distribution.maven.MavenDistributionPlugin
 
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication

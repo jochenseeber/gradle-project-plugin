@@ -31,7 +31,6 @@ import groovy.transform.TypeChecked
 import me.seeber.gradle.plugin.AbstractProjectPlugin
 import me.seeber.gradle.project.base.BaseProjectPlugin
 
-import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
 
@@ -39,6 +38,7 @@ import com.bmuschko.gradle.docker.DockerExtension
 import com.bmuschko.gradle.docker.DockerRegistryCredentials
 import com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 @TypeChecked
 class DockerDistributionPlugin extends AbstractProjectPlugin<DockerDistributionExtension> {
@@ -57,16 +57,19 @@ class DockerDistributionPlugin extends AbstractProjectPlugin<DockerDistributionE
             }
 
             registryCredentials = new DockerRegistryCredentials()
-            registryCredentials.with {
-                url = "https://docker.caperwhite.com/v1/"
-                username = getPropertyValue("docker.user")
-                password = getPropertyValue("docker.password")
-                email = getPropertyValue("docker.email")
-            }
         }
     }
 
     void complete() {
+        extension(DockerExtension).with {
+            registryCredentials.with {
+                url = extension(DockerDistributionExtension).registryUrl?.toASCIIString() ?: url
+                username = username ?: getPropertyValue("docker.user")
+                password = password ?: getPropertyValue("docker.password")
+                email = email ?: getPropertyValue("docker.email")
+            }
+        }
+
         project.with {
             config.images.all { DockerImage image ->
                 Copy copyImageFilesTask = tasks.create("docker${image.name.capitalize()}CopyFiles", Copy)
@@ -92,19 +95,22 @@ class DockerDistributionPlugin extends AbstractProjectPlugin<DockerDistributionE
 
                     dependsOn copyImageFilesTask
                 }
+
+                DockerPushImage pushImageTask = tasks.create("docker${image.name.capitalize()}Push", DockerPushImage)
+                pushImageTask.with {
+                    description = "Push Docker image '${image.name}'"
+                    group = "docker"
+
+                    imageName = image.repository
+                    tag = image.tag
+
+                    dependsOn buildImageTask
+                }
             }
 
             config.images.all { DockerImage image ->
                 Task copyImageFilesTask = tasks.getByName("docker${image.name.capitalize()}CopyFiles")
                 copyImageFilesTask.dependsOn(image.dependsOn)
-            }
-        }
-    }
-
-    protected void checkDockerCredentials() {
-        extension(DockerExtension).registryCredentials.with {
-            if(username == null || password == null || email == null) {
-                throw new GradleException("You must set docker.user, docker.password and docker.email in '~/.gradle/gradle.properties'")
             }
         }
     }
