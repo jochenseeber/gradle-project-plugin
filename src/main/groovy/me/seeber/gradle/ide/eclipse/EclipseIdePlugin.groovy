@@ -41,7 +41,9 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.plugins.WarPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 
 @TypeChecked
@@ -54,6 +56,10 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
     void initialize() {
         project.plugins.apply(BaseProjectPlugin)
         project.plugins.apply(EclipsePlugin)
+
+        project.plugins.withType(WarPlugin) {
+            project.plugins.apply(EclipseWtpPlugin)
+        }
 
         EclipseIdeExtension eclipse = getConfig()
 

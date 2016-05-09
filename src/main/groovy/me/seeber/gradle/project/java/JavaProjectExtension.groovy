@@ -28,35 +28,14 @@
 
 package me.seeber.gradle.project.java
 
-import java.util.Properties
+import groovy.transform.TypeChecked
+import me.seeber.gradle.plugin.AbstractProjectExtension
 
 import org.gradle.api.Project
 
-import groovy.lang.Closure
-import groovy.transform.TypeChecked
-import me.seeber.gradle.plugin.AbstractProjectExtension;
-
 @TypeChecked
 class JavaProjectExtension extends AbstractProjectExtension {
-    @TypeChecked
-    static class EclipseConfig {
-
-        Properties corePrefs = new Properties()
-
-        Properties uiPrefs = new Properties()
-    }
-
-    EclipseConfig eclipse = new EclipseConfig()
-
     JavaProjectExtension(Project project) {
         super(project)
-    }
-
-    void eclipse(Closure config) {
-        project.configure(eclipse, config)
-    }
-
-    EclipseConfig getEclipse() {
-        this.eclipse
     }
 }

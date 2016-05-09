@@ -27,8 +27,6 @@
  */
 package me.seeber.gradle.ide.eclipse
 
-import java.util.Properties
-
 import groovy.transform.TypeChecked
 
 @TypeChecked

@@ -27,23 +27,48 @@
  */
 package me.seeber.gradle.project.java
 
+import groovy.transform.InheritConstructors
 import groovy.transform.TypeChecked
-import me.seeber.gradle.plugin.AbstractProjectExtension
-import me.seeber.gradle.plugin.AbstractProjectPlugin;
+import me.seeber.gradle.plugin.AbstractProjectPlugin
+
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.javadoc.Javadoc
 
 @TypeChecked
-class JavaBaseProjectPlugin extends AbstractProjectPlugin<AbstractProjectExtension> {
+@InheritConstructors
+abstract class JavaBaseProjectPlugin<T extends JavaBaseProjectExtension> extends AbstractProjectPlugin<T> {
 
     @Override
     protected void initialize() {
         this.project.with {
             plugins.apply(JavaProjectPlugin)
 
-            dependencies.add("compile", [group: "org.eclipse.jdt", name: "org.eclipse.jdt.annotation", version: "2.0.0"])
-        }
+            JavaPluginConvention java = convention.findPlugin(JavaPluginConvention)
 
-        extension(JavaProjectExtension).with {
-            eclipse.corePrefs.putIfAbsent("org.eclipse.jdt.core.compiler.annotation.missingNonNullByDefaultAnnotation", "warning")
+            Javadoc javadoc = tasks.withType(Javadoc).getAt("javadoc")
+
+            Jar javadocJar = tasks.create("javadocJar", Jar)
+            javadocJar.with {
+                description = "Assembles a jar archive containing the JavaDoc documentation."
+                classifier = "javadoc"
+                from(javadoc.destinationDir)
+            }
+
+            Jar testsJar = tasks.create("testsJar", Jar)
+            testsJar.with {
+                description = "Assembles a jar archive containing the unit tests."
+                classifier = "tests"
+                from(java.sourceSets.getAt("test").output)
+            }
+
+            Jar sourcesJar = tasks.withType(Jar).getAt("sourcesJar")
+
+            artifacts.add("archives", sourcesJar)
+            artifacts.add("archives", javadocJar)
+            artifacts.add("archives", testsJar)
+
+            dependencies.add("compile", [group: "org.eclipse.jdt", name: "org.eclipse.jdt.annotation", version: "2.0.0"])
         }
     }
 }

@@ -29,28 +29,14 @@ package me.seeber.gradle.project.java
 
 import groovy.transform.TypeChecked
 
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.Project
 
 @TypeChecked
-class JarProjectPlugin extends JavaBaseProjectPlugin<JarProjectExtension> {
+class WarProjectExtension extends JavaBaseProjectExtension {
 
-    JarProjectPlugin() {
-        super("jarConfig", JarProjectExtension)
-    }
+    WarProjectExtension(Project project) {
+        super(project)
 
-    protected void complete() {
-        super.complete()
-
-        project.with {
-            optionalExtension(PublishingExtension)?.with {
-                publications.create(this.config.publicationName, MavenPublication).with {
-                    from(components.getByName("java"))
-                    artifact(source: tasks.getByName("sourcesJar"), classifier: "sources")
-                    artifact(source: tasks.getByName("testsJar"), classifier: "tests")
-                    artifact(source: tasks.getByName("javadocJar"), classifier: "javadoc")
-                }
-            }
-        }
+        this.publicationName = "war"
     }
 }

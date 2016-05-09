@@ -27,13 +27,16 @@
  */
 package me.seeber.gradle.project.java
 
-import groovy.transform.InheritConstructors
 import groovy.transform.TypeChecked
-import me.seeber.gradle.plugin.AbstractProjectExtension;
+
+import org.gradle.api.Project
 
 @TypeChecked
-@InheritConstructors
-class JarProjectExtension extends AbstractProjectExtension {
+class JarProjectExtension extends JavaBaseProjectExtension {
 
-    String publicationName = "jar"
+    public JarProjectExtension(Project project) {
+        super(project)
+
+        this.publicationName = "jar"
+    }
 }

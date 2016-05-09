@@ -42,7 +42,7 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 @TypeChecked
-class MavenRepositoryPlugin extends AbstractProjectPlugin {
+class MavenRepositoryPlugin extends AbstractProjectPlugin<MavenRepositoryExtension> {
 
     MavenRepositoryPlugin() {
         super("mavenConfig", MavenRepositoryExtension)
@@ -84,11 +84,11 @@ class MavenRepositoryPlugin extends AbstractProjectPlugin {
         root["url"].init(config.websiteUrl as String)
         root["organization"]["name"].init(config.organization.name)
         root["licenses"]["license"]["name"].init(config.license.name)
-        root["licenses"]["license"]["url"].init(config.license.url.toASCIIString())
-        root["scm"]["connection"].init("scm:${config.repository.type}:${config.repository.connection}")
-        root["scm"]["developerConnection"].init("scm:${config.repository.type}:${config.repository.developerConnection}")
-        root["scm"]["url"].init(config.repository.websiteUrl.toASCIIString())
-        root["issueManagement"]["url"].init(config.issueTracker.websiteUrl.toASCIIString())
+        root["licenses"]["license"]["url"].init(config.license.url?.toASCIIString())
+        root["scm"]["connection"].init(config.repository.connection?.with { "scm:${config.repository.type}:${it}" })
+        root["scm"]["developerConnection"].init(config.repository.developerConnection?.with { "scm:${config.repository.type}:${it}" })
+        root["scm"]["url"].init(config.repository.websiteUrl?.with { it.toASCIIString() })
+        root["issueManagement"]["url"].init(config.issueTracker.websiteUrl?.with { it.toASCIIString() })
 
         NodeWrapper dependencies = root["dependencies"]
 
