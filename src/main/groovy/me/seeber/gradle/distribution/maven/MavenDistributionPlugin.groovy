@@ -25,7 +25,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package me.seeber.gradle.repository.maven
+package me.seeber.gradle.distribution.maven
 
 import groovy.transform.TypeChecked
 import me.seeber.gradle.plugin.AbstractProjectPlugin
@@ -42,10 +42,10 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 
 @TypeChecked
-class MavenRepositoryPlugin extends AbstractProjectPlugin<MavenRepositoryExtension> {
+class MavenDistributionPlugin extends AbstractProjectPlugin<MavenDistributionExtension> {
 
-    MavenRepositoryPlugin() {
-        super("mavenConfig", MavenRepositoryExtension)
+    MavenDistributionPlugin() {
+        super("mavenConfig", MavenDistributionExtension)
     }
 
     void initialize() {

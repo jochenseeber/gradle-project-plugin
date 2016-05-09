@@ -25,13 +25,13 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package me.seeber.gradle.repository.bintray
+package me.seeber.gradle.distribution.bintray
 
 import groovy.transform.TypeChecked
 import me.seeber.gradle.plugin.AbstractProjectPlugin
 import me.seeber.gradle.project.base.BaseProjectExtension
 import me.seeber.gradle.project.base.BaseProjectPlugin
-import me.seeber.gradle.repository.maven.MavenRepositoryPlugin
+import me.seeber.gradle.distribution.maven.MavenDistributionPlugin
 
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -40,15 +40,15 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import com.jfrog.bintray.gradle.BintrayPlugin
 
 @TypeChecked
-class BintrayRepositoryPlugin extends AbstractProjectPlugin<BintrayRepositoryExtension> {
+class BintrayDistributionPlugin extends AbstractProjectPlugin<BintrayDistributionExtension> {
 
-    BintrayRepositoryPlugin() {
-        super("bintrayConfig", BintrayRepositoryExtension)
+    BintrayDistributionPlugin() {
+        super("bintrayConfig", BintrayDistributionExtension)
     }
 
     void initialize() {
         project.plugins.apply(BaseProjectPlugin)
-        project.plugins.apply(MavenRepositoryPlugin)
+        project.plugins.apply(MavenDistributionPlugin)
         project.plugins.apply(BintrayPlugin)
     }
 

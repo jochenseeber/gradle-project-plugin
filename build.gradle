@@ -74,12 +74,12 @@ pluginBundle {
         }
 
         mavenRepositoryPlugin {
-            id = "me.seeber.repository.maven"
+            id = "me.seeber.distribution.maven"
             displayName = "Configuration forMaven repositories"
         }
 
         bintrayRepositoryPlugin {
-            id = "me.seeber.repository.bintray"
+            id = "me.seeber.distribution.bintray"
             displayName = "Configuration for BinTray repositories"
         }
 

@@ -31,7 +31,7 @@ import groovy.transform.TypeChecked
 import me.seeber.gradle.plugin.AbstractProjectPlugin
 import me.seeber.gradle.project.base.BaseProjectExtension
 import me.seeber.gradle.project.java.JavaProjectPlugin
-import me.seeber.gradle.repository.maven.MavenRepositoryPlugin
+import me.seeber.gradle.distribution.maven.MavenDistributionPlugin
 
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.plugins.GroovyPlugin
@@ -54,7 +54,7 @@ class GradlePluginProjectPlugin extends AbstractProjectPlugin<GradlePluginProjec
     void initialize() {
         this.project.with {
             plugins.apply(JavaProjectPlugin)
-            plugins.apply(MavenRepositoryPlugin)
+            plugins.apply(MavenDistributionPlugin)
             plugins.apply(GroovyPlugin)
             plugins.apply(JavaGradlePluginPlugin)
             plugins.apply(PublishPlugin)

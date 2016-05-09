@@ -25,7 +25,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package me.seeber.gradle.repository.maven
+package me.seeber.gradle.distribution.bintray
 
 import groovy.transform.InheritConstructors
 import groovy.transform.TypeChecked
@@ -33,7 +33,7 @@ import me.seeber.gradle.plugin.AbstractProjectExtension;
 
 @TypeChecked
 @InheritConstructors
-class MavenRepositoryExtension extends AbstractProjectExtension {
+class BintrayDistributionExtension extends AbstractProjectExtension {
 
-    String publicationName = "maven"
+    String repository
 }
