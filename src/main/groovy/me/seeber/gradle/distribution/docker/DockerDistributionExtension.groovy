@@ -31,32 +31,17 @@ import groovy.transform.InheritConstructors
 import groovy.transform.TypeChecked
 import me.seeber.gradle.plugin.AbstractProjectExtension
 
+import org.gradle.api.NamedDomainObjectContainer
+
 @TypeChecked
 @InheritConstructors
 class DockerDistributionExtension extends AbstractProjectExtension {
 
-    List<String> volatileLibs = []
+    final NamedDomainObjectContainer<DockerImage> images = project.container(DockerImage, new DockerImageFactory(project))
 
-    String registry
+    boolean pull = true
 
-    String name
-
-    String tag
-
-    String getImage() {
-        StringBuilder image = new StringBuilder()
-
-        if(registry) {
-            image.append(registry)
-            image.append("/")
-        }
-
-        image.append(name ?: project.name.replaceAll('-', '_').toLowerCase())
-
-        image.toString()
-    }
-
-    String getBaseImage() {
-        getImage() + "_base"
+    void images(Closure configuration) {
+        images.configure(configuration)
     }
 }

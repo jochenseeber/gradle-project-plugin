@@ -33,15 +33,12 @@ import me.seeber.gradle.project.base.BaseProjectPlugin
 
 import org.gradle.api.GradleException
 import org.gradle.api.Task
-import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.bundling.War
 
 import com.bmuschko.gradle.docker.DockerExtension
 import com.bmuschko.gradle.docker.DockerRegistryCredentials
 import com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
 @TypeChecked
 class DockerDistributionPlugin extends AbstractProjectPlugin<DockerDistributionExtension> {
@@ -69,110 +66,37 @@ class DockerDistributionPlugin extends AbstractProjectPlugin<DockerDistributionE
         }
     }
 
-    protected void complete() {
+    void complete() {
         project.with {
-            plugins.withType(WarPlugin) {
-                War war = tasks.withType(War).getByName("war")
-                Task warTask = tasks.getByName("war")
-
-                Copy copyBaseFilesTask = tasks.create("dockerBaseCopyFiles", Copy)
-                copyBaseFilesTask.with {
-                    description = "Copy base image files to docker build directory"
+            config.images.all { DockerImage image ->
+                Copy copyImageFilesTask = tasks.create("docker${image.name.capitalize()}CopyFiles", Copy)
+                copyImageFilesTask.with {
+                    description = "Copy files for Docker image '${image.name}'"
                     group = "docker"
 
-                    into "build/docker/base"
+                    into "${buildDir}/docker/${image.name}"
 
-                    from("src/docker/base") { expand project: project }
+                    from("src/docker/${image.name}") { expand project: project }
 
-                    from(configurations.getByName("runtime")) {
-                        into "libs"
-                        exclude config.volatileLibs
-                    }
-
-                    dependsOn warTask
+                    with image.copySpec
                 }
 
-
-                DockerBuildImage buildBaseImageTask = tasks.create("dockerBaseBuildImage", DockerBuildImage)
-                buildBaseImageTask.with {
-                    description = "Build base image"
+                DockerBuildImage buildImageTask = tasks.create("docker${image.name.capitalize()}Build", DockerBuildImage)
+                buildImageTask.with {
+                    description = "Build Docker image '${image.name}'"
                     group = "docker"
 
-                    tag = "${config.baseImage}:${version}"
-                    inputDir = file("build/docker/base")
+                    tag = "${image.repository}:${image.tag}"
+                    inputDir = file("${buildDir}/docker/${image.name}")
+                    pull = config.pull
 
-                    if (!project.hasProperty("bootstrap")) {
-                        doFirst { checkDockerCredentials() }
-                        pull = true
-                    }
-
-                    dependsOn copyBaseFilesTask
+                    dependsOn copyImageFilesTask
                 }
+            }
 
-                DockerPushImage pushBaseImageTask = tasks.create("dockerBasePushImage", DockerPushImage)
-                pushBaseImageTask.with {
-                    description = "Push base image to repository"
-                    group = "docker"
-
-                    imageName = config.baseImage
-                    tag = version
-
-                    doFirst { checkDockerCredentials() }
-                    dependsOn buildBaseImageTask
-                }
-
-                Copy copyTomcatFilesTask = tasks.create("dockerTomcatCopyFiles", Copy)
-                copyTomcatFilesTask.with {
-                    description = "Copy tomcat image files to docker build directory"
-                    group = "docker"
-
-                    into "build/docker/tomcat"
-
-                    from("src/docker/tomcat") { expand project: project }
-
-                    from(configurations.getByName("runtime")) {
-                        into "libs"
-                        include config.volatileLibs
-                    }
-
-                    with copySpec {
-                        with war
-                        into "webapp"
-                        exclude "*.jar"
-                    }
-
-                    dependsOn warTask
-                }
-
-                DockerBuildImage buildTomcatImageTask = tasks.create("dockerTomcatBuildImage", DockerBuildImage)
-                buildTomcatImageTask.with {
-                    description = "Build tomcat image"
-                    group = "docker"
-
-                    tag = "${config.image}:${version}"
-                    inputDir = file("build/docker/tomcat")
-
-                    if (!project.hasProperty("bootstrap")) {
-                        doFirst { checkDockerCredentials() }
-                        pull = true
-                    }
-
-                    // TODO dependsOn buildBaseImageTask
-                    dependsOn copyTomcatFilesTask
-                }
-
-                DockerPushImage pushTomcatImageTask = tasks.create("dockerTomcatPushImage", DockerPushImage)
-                pushTomcatImageTask.with {
-                    description = "Push docker image to repository"
-                    group = "docker"
-
-                    imageName = config.image
-                    tag = version
-
-                    doFirst { checkDockerCredentials() }
-                    buildTomcatImageTask
-                    dependsOn buildTomcatImageTask
-                }
+            config.images.all { DockerImage image ->
+                Task copyImageFilesTask = tasks.getByName("docker${image.name.capitalize()}CopyFiles")
+                copyImageFilesTask.dependsOn(image.dependsOn)
             }
         }
     }
