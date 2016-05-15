@@ -31,6 +31,9 @@ import groovy.transform.TypeChecked
 import me.seeber.gradle.plugin.AbstractProjectPlugin
 import me.seeber.gradle.project.base.BaseProjectPlugin
 
+import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.JavaPlugin
@@ -43,11 +46,11 @@ class JavaProjectPlugin extends AbstractProjectPlugin<JavaProjectExtension> {
     private Logger logger = Logging.getLogger(JavaProjectPlugin)
 
     JavaProjectPlugin() {
-        super("javaConfiguration", JavaProjectExtension)
+        super("javaConfig", JavaProjectExtension)
     }
 
     void initialize() {
-        this.project.with {
+        project.with {
             plugins.apply(BaseProjectPlugin)
             plugins.apply(JavaPlugin)
 
@@ -62,6 +65,23 @@ class JavaProjectPlugin extends AbstractProjectPlugin<JavaProjectExtension> {
                 description = "Assembles a jar archive containing the sources."
                 classifier = "sources"
                 from java.sourceSets.getByName("main").allJava
+            }
+        }
+    }
+
+    void configure() {
+        project.with {
+            configurations.all { Configuration configuration ->
+                configuration.resolutionStrategy.componentSelection.all { ComponentSelection selection ->
+                    ExcludeRule matching = this.config.bannedComponents.rules.find { ExcludeRule exclude ->
+                        (exclude.group == null || exclude.group == selection.candidate.group) &&
+                                (exclude.module == null || exclude.module == selection.candidate.module)
+                    }
+
+                    if(matching) {
+                        selection.reject("Dependency ${selection.candidate} is banned by rule ${matching.group}:${matching.module}")
+                    }
+                }
             }
         }
     }
