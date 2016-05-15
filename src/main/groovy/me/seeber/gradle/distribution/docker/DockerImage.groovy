@@ -29,7 +29,6 @@ package me.seeber.gradle.distribution.docker
 
 import org.gradle.api.Named
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
 
 class DockerImage implements Named {
@@ -40,7 +39,7 @@ class DockerImage implements Named {
 
     final CopySpec copySpec = project.copySpec()
 
-    final Set<Task> dependsOn = []
+    final Set<Object> dependsOn = []
 
     String repository
 
@@ -60,7 +59,7 @@ class DockerImage implements Named {
         copySpec.with(copySpecs)
     }
 
-    void dependsOn(Task... tasks) {
+    void dependsOn(Object... tasks) {
         this.dependsOn.addAll(tasks);
     }
 }
