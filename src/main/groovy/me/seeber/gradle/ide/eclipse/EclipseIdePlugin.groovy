@@ -91,6 +91,7 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
     void configure() {
         project.with {
             tasks.getByName("eclipseJdt").doFirst { beforeJdt() }
+            tasks.getByName("eclipseJdt").doLast { afterJdt() }
             tasks.getByName("eclipseClasspath").doFirst { beforeClasspath() }
             tasks.getByName("cleanEclipseJdt").doLast { afterCleanJdt() }
         }
@@ -102,7 +103,9 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
                 properties.putAll(config.jdt.corePrefs)
             }
         }
+    }
 
+    protected void afterJdt() {
         Properties prefs = new Properties(config.jdt.uiPrefs)
 
         this.project.file("${project.projectDir}/.settings/org.eclipse.jdt.ui.prefs").withWriter("UTF-8") { Writer out ->
