@@ -59,6 +59,10 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
 
         project.plugins.withType(WarPlugin) {
             project.plugins.apply(EclipseWtpPlugin)
+
+            extension(EclipseModel).with {
+                classpath.containers.removeAll(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
+            }
         }
 
         EclipseIdeExtension eclipse = getConfig()
@@ -162,12 +166,10 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
         File annotationPath = lookupAnnotationPath(project.rootProject, name)
 
         if(annotationPath != null) {
-            File relativeAnnotationPath = project.projectDir.toPath().relativize(annotationPath.toPath()).toFile()
-
-            logger.info "Adding annotations library '${relativeAnnotationPath}'"
+            logger.info "Adding annotations library '${annotationPath}'"
 
             Node annotationpath = getAttributeNode(classpathentry, "annotationpath")
-            annotationpath.@value = relativeAnnotationPath
+            annotationpath.@value = annotationPath
         }
     }
 
@@ -197,7 +199,7 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
         File annotationPath = artifact?.file
 
         if(artifact != null) {
-            // If the annotation library is built by the current project, try to use the source folder instead
+            // If the annotation library is built by one of our projects, try to use the source folder instead
             ArchivePublishArtifact sourceArtifact = null
 
             rootProject.allprojects.find { Project project ->
