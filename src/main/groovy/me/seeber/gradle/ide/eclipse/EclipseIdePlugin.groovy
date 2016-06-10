@@ -27,6 +27,8 @@
  */
 package me.seeber.gradle.ide.eclipse
 
+import groovy.text.SimpleTemplateEngine
+import groovy.text.TemplateEngine
 import groovy.transform.TypeChecked
 
 import java.nio.file.Path
@@ -86,6 +88,11 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
             eclipse.jdt.uiPrefs.load(input)
         }
 
+        String templateText = EclipseIdePlugin.getResourceAsStream("codetemplates.xml").getText("UTF-8")
+        TemplateEngine engine = new SimpleTemplateEngine()
+        String text = engine.createTemplate(templateText).make([project: project])
+        eclipse.jdt.uiPrefs["org.eclipse.jdt.ui.text.custom_code_templates"] = text
+
         extension(EclipseModel).classpath.with {
             downloadSources = true
             downloadJavadoc = true
@@ -110,7 +117,8 @@ class EclipseIdePlugin extends AbstractProjectPlugin<EclipseIdeExtension> {
     }
 
     protected void afterJdt() {
-        Properties prefs = new Properties(config.jdt.uiPrefs)
+        Properties prefs = new Properties()
+        prefs.putAll(getConfig().jdt.uiPrefs)
 
         this.project.file("${project.projectDir}/.settings/org.eclipse.jdt.ui.prefs").withWriter("UTF-8") { Writer out ->
             prefs.store(out, null)
