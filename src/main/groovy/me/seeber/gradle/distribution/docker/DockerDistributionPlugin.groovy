@@ -56,20 +56,17 @@ class DockerDistributionPlugin extends AbstractProjectPlugin<DockerDistributionE
                 url = host.replaceFirst("tcp://", "https://")
             }
 
-            registryCredentials = new DockerRegistryCredentials()
+            registryCredentials = registryCredentials ?: new DockerRegistryCredentials()
+            registryCredentials.with {
+                username = username ?: getPropertyValue("docker.user")
+                password = password ?: getPropertyValue("docker.password")
+                email = email ?: getPropertyValue("docker.email")
+                url = getPropertyValue("docker.url")
+            }
         }
     }
 
     void complete() {
-        extension(DockerExtension).with {
-            registryCredentials.with {
-                url = extension(DockerDistributionExtension).registryUrl?.toASCIIString() ?: url
-                username = username ?: getPropertyValue("docker.user")
-                password = password ?: getPropertyValue("docker.password")
-                email = email ?: getPropertyValue("docker.email")
-            }
-        }
-
         project.with {
             config.images.all { DockerImage image ->
                 Copy copyImageFilesTask = tasks.create("docker${image.name.capitalize()}CopyFiles", Copy)
