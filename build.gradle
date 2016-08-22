@@ -17,7 +17,7 @@ buildscript {
     }
 }
 
-version = "1.0.0-SNAPSHOT"
+version = "0.1.0"
 group = "me.seeber.gradle"
 description = "Plugins for common Gradle project settings"
 
